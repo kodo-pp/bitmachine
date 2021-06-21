@@ -1,0 +1,34 @@
+program = { (line ~ (newline ~ line)* ~ newline?)? }
+    newline = _{ "\n" }
+    line = { ws ~ (func_def | empty_line) ~ ws }
+        empty_line = { "" }
+        func_def = { var_name ~ wsx ~ patterns ~ ws ~ "=" ~ ws ~ expr }
+            var_name = @{ var_name_char_head ~ var_name_char_tail* }
+                var_name_char_head = @{ 'a'..'z' | "_" }
+                var_name_char_tail = @{ var_name_char_head | '0'..'9' }
+            patterns = { (pattern ~ (wsx ~ pattern)*)? }
+                pattern = { var_len_pattern | const_len_pattern | empty_pattern }
+                    empty_pattern = { "." }
+                    const_len_pattern = { const_len_pattern_item ~ ("+"? ~ const_len_pattern_item)* }
+                        const_len_pattern_item = { pattern_const | pattern_bit }
+                            pattern_const = { "0" | "1" }
+                            pattern_bit = { ("?" ~ var_name) }
+                    var_len_pattern = {
+                        (const_len_pattern ~ "+")?
+                        ~ var_name
+                        ~ ("+" ~ const_len_pattern)?
+                    }
+            expr = { expr_call | expr_single }
+                expr_single = { expr_cat | expr_atomic }
+                expr_atomic = { expr_paren | expr_literal | expr_name }
+
+                expr_paren = { "(" ~ expr ~ ")" }
+                expr_literal = { "." | ("0" | "1")+ }
+                expr_cat = { expr_atomic ~ ("+" ~ expr_atomic)+ }
+                expr_call = { expr_single ~ (ws ~ expr_single)+ }
+                expr_name = { var_name | special_var_name | var_name_no_trampoline }
+                    special_var_name = { "$" | "*?" | "*!" | "*+" | "*-" }
+                    var_name_no_trampoline = { "@" ~ var_name }
+ws = _{ " "* }
+wsx = _{ " "+ }
+toplevel = { SOI ~ program ~ EOI }

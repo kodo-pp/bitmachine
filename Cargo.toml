@@ -1,0 +1,14 @@
+[package]
+name = "bitmachine"
+version = "0.1.0"
+authors = ["Alexander Korzun <sahhash33@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itertools = "0.10.0"
+pest = "2.1.3"
+pest_derive = "2.1.0"
+thiserror = "1.0.25"
+anyhow = "1.0.40"
