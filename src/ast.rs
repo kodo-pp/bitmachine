@@ -11,6 +11,7 @@ pub type FunctionMap = HashMap<String, Function>;
 
 #[derive(Debug)]
 pub struct Function {
+    pub name: String,
     pub variants: Vec<FunctionVariant>,
 }
 

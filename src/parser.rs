@@ -34,8 +34,8 @@ pub fn parse(code: &str) -> AnyResult<Program> {
     let mut map = FunctionMap::new();
     for (func_name, func_var) in program.into_inner().filter_map(parse_line) {
         map
-            .entry(func_name)
-            .or_insert(Function { variants: vec![] })
+            .entry(func_name.clone())
+            .or_insert(Function { name: func_name, variants: vec![] })
             .variants
             .push(func_var);
     }

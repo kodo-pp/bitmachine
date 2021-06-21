@@ -1,6 +1,7 @@
 use crate::value::Value;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct Bindings(HashMap<String, Value>);
 
 impl Bindings {

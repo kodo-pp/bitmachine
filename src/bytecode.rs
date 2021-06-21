@@ -1,7 +1,7 @@
 use crate::bitstring::BitString;
 use std::iter::Iterator;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Bytecode {
     instructions: Vec<Instruction>,
 }
@@ -11,16 +11,20 @@ impl Bytecode {
         Self { instructions }
     }
 
-    #[allow(dead_code)]
     pub fn iter(&self) -> impl Iterator<Item = &Instruction> {
         self.instructions.iter()
     }
+
+    pub fn at(&self, index: usize) -> Option<&Instruction> {
+        self.instructions.get(index)
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
     LoadConst(BitString),
-    LoadVar { name: String, trampoline: bool },
+    LoadVar { name: String },
+    Trampoline,
     Call(usize),
     Cat(usize),
     Tail { prepend: usize, append: usize },
@@ -34,11 +38,8 @@ impl Pretty for Instruction {
     fn pretty(&self) -> String {
         match self {
             Instruction::LoadConst(s) => format!("load_const {:?}", s),
-            Instruction::LoadVar { name, trampoline } => format!(
-                "load_name{} {:?}",
-                if *trampoline { ".nt" } else { "" },
-                name
-            ),
+            Instruction::LoadVar { name } => format!("load_name {:?}", name),
+            Instruction::Trampoline => String::from("trampoline"),
             Instruction::Call(n) => format!("call {}", n),
             Instruction::Cat(n) => format!("cat {}", n),
             Instruction::Tail { prepend, append } => {

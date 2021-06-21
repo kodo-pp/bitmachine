@@ -1,6 +1,6 @@
 use crate::coded_function::CodedFunction;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Callable {
     Coded(CodedFunction),
 }

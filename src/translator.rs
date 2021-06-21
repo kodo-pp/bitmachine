@@ -36,6 +36,7 @@ fn compile_function_map(function_map: FunctionMap) -> CompiledFunctionMap {
 
 fn compile_function(func: Function) -> CodedFunction {
     CodedFunction {
+        name: func.name,
         variants: func.variants.into_iter().map(compile_function_variant).collect()
     }
 }
@@ -53,7 +54,11 @@ pub enum CallStatus {
 impl ToInstructions for Expr {
     fn to_instructions(self, call_status: CallStatus) -> Vec<Instruction> {
         match self {
-            Expr::Variable { name, trampoline } => vec![Instruction::LoadVar { name, trampoline }],
+            Expr::Variable { name, trampoline } => if trampoline {
+                vec![Instruction::LoadVar { name }, Instruction::Trampoline]
+            } else {
+                vec![Instruction::LoadVar { name }]
+            },
             Expr::Literal(bit_string) => vec![Instruction::LoadConst(bit_string)],
             Expr::Call { callee, args } => function_call_to_instructions(*callee, args, call_status),
             Expr::Cat { children } => concatenation_to_instructions(children, call_status),

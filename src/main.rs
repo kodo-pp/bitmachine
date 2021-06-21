@@ -1,14 +1,15 @@
-mod parser;
 mod ast;
 mod bindings;
 mod bitstring;
 mod bytecode;
 mod callable;
+mod coded_function;
+mod compiled;
+mod parser;
 mod pattern;
 mod translator;
 mod value;
-mod compiled;
-mod coded_function;
+mod vm;
 
 use crate::translator::Compile;
 

@@ -1,6 +1,7 @@
 use crate::bitstring::BitString;
 use crate::callable::Callable;
 
+#[derive(Debug, Clone)]
 pub enum Value {
     BitString(BitString),
     Callable(Callable),
