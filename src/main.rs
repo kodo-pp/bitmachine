@@ -1,4 +1,3 @@
-//mod executor;
 mod parser;
 mod ast;
 mod bindings;
