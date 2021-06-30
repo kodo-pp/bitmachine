@@ -17,8 +17,13 @@ pub struct MultiPattern(pub Vec<Pattern>);
 
 impl PatternParseMulti for MultiPattern {
     fn parse(&self, args: Vec<Value>) -> Option<Bindings> {
+        println!("Parse {:?} with {:?}", args, self);
+        if args.len() != self.0.len() {
+            return None;
+        }
+
         args.into_iter()
-            .zip(self.0.iter())
+            .zip_eq(self.0.iter())
             .map(|(arg, pat)| pat.parse(arg))
             .fold_options(Bindings::empty(), |b1, b2| b1.union_with(b2))
     }
@@ -81,9 +86,13 @@ impl ConstLenPattern {
 impl PatternParse for ConstLenPattern {
     fn parse(&self, arg: Value) -> Option<Bindings> {
         let bitstring = arg.into_bit_string()?;
+        if self.elements.len() != bitstring.len() {
+            return None;
+        }
+
         let iter = self.elements
             .iter()
-            .zip(bitstring.iter())
+            .zip_eq(bitstring.iter())
             .map(|(elem, bit)| elem.parse(bit));
         
         let mut bindings = Bindings::empty();

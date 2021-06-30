@@ -1,0 +1,10 @@
+inc x+0 = x+1
+inc x+1 = (inc x)+0
+inc . = 1
+
+print x = ?! x
+
+five = 101
+seven = inc (inc five)
+
+main = print (inc seven)

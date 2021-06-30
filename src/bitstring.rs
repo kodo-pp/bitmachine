@@ -68,11 +68,46 @@ impl BitString {
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = Bit> + 'a {
-        self.bytes.iter().copied().map(iter_bits_in_byte).flatten().take(self.len())
+        let len = self.len();
+        Self::iter_adapter(self.bytes.iter().copied(), len)
+    }
+
+    // TODO: implement this as part of the IntoIterator trait.
+    // This is not yet done, because it doesn't seem like I can
+    // write `-> impl Iterator<...>` as the return type, and
+    // the real type of the iterator returned is so complex it's
+    // better left unnamed.
+    pub fn into_iter(self) -> impl Iterator<Item = Bit> {
+        let len = self.len();
+        Self::iter_adapter(self.bytes.into_iter(), len)
+    }
+
+    fn iter_adapter<'a, Iter>(byte_iter: Iter, len: usize) -> impl Iterator<Item = Bit> + 'a
+    where
+        Iter: Iterator<Item = u8> + 'a
+    {
+        byte_iter.map(iter_bits_in_byte).flatten().take(len)
     }
 
     pub fn empty() -> BitString {
         iter::empty().collect()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn as_usize(&self) -> usize {
+        self.iter().fold(0, |a, b| (a << 1) | (b.as_number() as usize))
+    }
+
+    pub fn from_u64(num: u64) -> BitString {
+        (0..64).map(|i| {
+            let i = i as u64;
+            let shift_magnitude = 63 - i;
+            let bit_num = (num & (1 << shift_magnitude)) >> shift_magnitude;
+            Bit::from_number(bit_num as u8).unwrap()
+        }).collect()
     }
 }
 

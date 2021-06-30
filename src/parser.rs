@@ -132,7 +132,7 @@ fn parse_expr_name(expr: Pair<'_>) -> Expr {
     assert_rule!(expr::expr_name);
     let inner = expr.into_inner().next().unwrap();
     match inner.as_rule() {
-        Rule::var_name | Rule::special_var_name => Expr::Variable {
+        Rule::var_name => Expr::Variable {
             name: String::from(parse_var_name(inner)),
             trampoline: true,
         },
