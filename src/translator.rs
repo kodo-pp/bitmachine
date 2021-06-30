@@ -1,7 +1,7 @@
-use crate::ast::{Expr, Program, FunctionMap, Function, FunctionVariant};
+use crate::ast::{Expr, Function, FunctionMap, FunctionVariant, Program};
 use crate::bytecode::{Bytecode, Instruction};
-use crate::compiled::{Program as CompiledProgram, FunctionMap as CompiledFunctionMap};
 use crate::coded_function::{CodedFunction, CodedFunctionVariant};
+use crate::compiled::{FunctionMap as CompiledFunctionMap, Program as CompiledProgram};
 use std::iter;
 
 pub trait Compile {
@@ -18,7 +18,10 @@ pub trait ToInstructions {
 
 impl<T: ToInstructions> ToBytecode for T {
     fn to_bytecode(self) -> Bytecode {
-        Bytecode::new(self.to_instructions(CallStatus::Tail { prepend: 0, append: 0 }))
+        Bytecode::new(self.to_instructions(CallStatus::Tail {
+            prepend: 0,
+            append: 0,
+        }))
     }
 }
 
@@ -31,18 +34,28 @@ impl Compile for Program {
 }
 
 fn compile_function_map(function_map: FunctionMap) -> CompiledFunctionMap {
-    function_map.into_iter().map(|(name, func)| (name, compile_function(func).into())).collect()
+    function_map
+        .into_iter()
+        .map(|(name, func)| (name, compile_function(func).into()))
+        .collect()
 }
 
 fn compile_function(func: Function) -> CodedFunction {
     CodedFunction {
         name: func.name,
-        variants: func.variants.into_iter().map(compile_function_variant).collect()
+        variants: func
+            .variants
+            .into_iter()
+            .map(compile_function_variant)
+            .collect(),
     }
 }
 
 fn compile_function_variant(var: FunctionVariant) -> CodedFunctionVariant {
-    CodedFunctionVariant { patterns: var.patterns, body: var.body.to_bytecode() }
+    CodedFunctionVariant {
+        patterns: var.patterns,
+        body: var.body.to_bytecode(),
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -54,13 +67,17 @@ pub enum CallStatus {
 impl ToInstructions for Expr {
     fn to_instructions(self, call_status: CallStatus) -> Vec<Instruction> {
         match self {
-            Expr::Variable { name, trampoline } => if trampoline {
-                vec![Instruction::LoadVar { name }, Instruction::Trampoline]
-            } else {
-                vec![Instruction::LoadVar { name }]
-            },
+            Expr::Variable { name, trampoline } => {
+                if trampoline {
+                    vec![Instruction::LoadVar { name }, Instruction::Trampoline]
+                } else {
+                    vec![Instruction::LoadVar { name }]
+                }
+            }
             Expr::Literal(bit_string) => vec![Instruction::LoadConst(bit_string)],
-            Expr::Call { callee, args } => function_call_to_instructions(*callee, args, call_status),
+            Expr::Call { callee, args } => {
+                function_call_to_instructions(*callee, args, call_status)
+            }
             Expr::Cat { children } => concatenation_to_instructions(children, call_status),
         }
     }
@@ -74,11 +91,10 @@ fn function_call_to_instructions(
     let mut instructions = callee.to_instructions(CallStatus::Regular);
 
     let len = args.len();
-    
+
     for arg in args.into_iter() {
         instructions.append(&mut arg.to_instructions(CallStatus::Regular));
     }
-    
 
     instructions.push(match call_status {
         CallStatus::Regular => Instruction::Call(len),
@@ -95,7 +111,8 @@ fn concatenation_to_instructions(children: Vec<Expr>, call_status: CallStatus) -
             let prepends_len = prepends.len();
             let appends_len = appends.len();
 
-            prepends.into_iter()
+            prepends
+                .into_iter()
                 .chain(appends.into_iter())
                 .map(|expr| expr.to_instructions(CallStatus::Regular))
                 .flatten()
@@ -147,7 +164,9 @@ fn find_single_complex_expr(exprs: &[Expr]) -> Option<usize> {
     for (i, expr) in exprs.iter().enumerate() {
         match (last_complex, expr.is_complex()) {
             (_, false) => (),
-            (None, true) => { last_complex = Some(i); },
+            (None, true) => {
+                last_complex = Some(i);
+            }
             (Some(_), true) => return None,
         }
     }

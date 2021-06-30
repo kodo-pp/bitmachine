@@ -1,6 +1,6 @@
+use itertools::Itertools;
 use std::iter::{self, FromIterator};
 use std::str::FromStr;
-use itertools::Itertools;
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct BitString {
@@ -26,13 +26,13 @@ impl FromIterator<Bit> for BitString {
         let bytes = iter
             .chunks(8)
             .into_iter()
-            .map(
-                |chunk| chunk.fold(0, |num, bit| {
+            .map(|chunk| {
+                chunk.fold(0, |num, bit| {
                     let shift_magnitude = 7 - length % 8;
                     length += 1;
                     num | (bit.as_number() << shift_magnitude)
                 })
-            )
+            })
             .collect();
 
         BitString { bytes, length }
@@ -84,7 +84,7 @@ impl BitString {
 
     fn iter_adapter<'a, Iter>(byte_iter: Iter, len: usize) -> impl Iterator<Item = Bit> + 'a
     where
-        Iter: Iterator<Item = u8> + 'a
+        Iter: Iterator<Item = u8> + 'a,
     {
         byte_iter.map(iter_bits_in_byte).flatten().take(len)
     }
@@ -98,16 +98,19 @@ impl BitString {
     }
 
     pub fn as_usize(&self) -> usize {
-        self.iter().fold(0, |a, b| (a << 1) | (b.as_number() as usize))
+        self.iter()
+            .fold(0, |a, b| (a << 1) | (b.as_number() as usize))
     }
 
     pub fn from_u64(num: u64) -> BitString {
-        (0..64).map(|i| {
-            let i = i as u64;
-            let shift_magnitude = 63 - i;
-            let bit_num = (num & (1 << shift_magnitude)) >> shift_magnitude;
-            Bit::from_number(bit_num as u8).unwrap()
-        }).collect()
+        (0..64)
+            .map(|i| {
+                let i = i as u64;
+                let shift_magnitude = 63 - i;
+                let bit_num = (num & (1 << shift_magnitude)) >> shift_magnitude;
+                Bit::from_number(bit_num as u8).unwrap()
+            })
+            .collect()
     }
 }
 
@@ -121,7 +124,10 @@ impl FromStr for BitString {
         if string == "." {
             Ok(BitString::empty())
         } else {
-            string.chars().map(|c| Bit::from_char(c).ok_or(BitStringFromStringError)).try_collect()
+            string
+                .chars()
+                .map(|c| Bit::from_char(c).ok_or(BitStringFromStringError))
+                .try_collect()
         }
     }
 }
@@ -177,7 +183,7 @@ pub struct BitFromStringError;
 
 impl FromStr for Bit {
     type Err = BitFromStringError;
-    
+
     fn from_str(string: &str) -> Result<Bit, BitFromStringError> {
         match string {
             "0" => Ok(Bit::Zero),

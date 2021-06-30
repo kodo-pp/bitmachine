@@ -5,19 +5,19 @@ mod bytecode;
 mod callable;
 mod coded_function;
 mod compiled;
+mod native_function;
 mod parser;
 mod pattern;
 mod translator;
 mod value;
 mod vm;
-mod native_function;
 
-use crate::translator::Compile;
-use crate::bitstring::BitString;
 use crate::bindings::Bindings;
-use thiserror::Error;
-use std::path::Path;
+use crate::bitstring::BitString;
+use crate::translator::Compile;
 use std::io::Read;
+use std::path::Path;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("Usage: {argv0} <filename>")]
@@ -48,19 +48,19 @@ fn main() -> anyhow::Result<()> {
     let mut vm = vm::VM::new(
         Bindings::new(
             vec![("test", BitString::empty().into())]
-            .into_iter()
-            .map(|(k, v)| (k.to_owned(), v))
-            .collect()
-        ).union_with(compiled_program.into()).union_with(native_function::make_bindings())
+                .into_iter()
+                .map(|(k, v)| (k.to_owned(), v))
+                .collect(),
+        )
+        .union_with(compiled_program.into())
+        .union_with(native_function::make_bindings()),
     );
 
     vm.invoke_by_name("main", vec![])?;
     loop {
         match vm.step() {
-            Err(vm::ExecError::TaskStackEmpty) => {
-                break
-            }
-            x => x?
+            Err(vm::ExecError::TaskStackEmpty) => break,
+            x => x?,
         }
     }
 

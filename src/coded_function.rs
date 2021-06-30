@@ -18,4 +18,3 @@ pub struct CodedFunctionVariant {
     pub patterns: MultiPattern,
     pub body: Bytecode,
 }
-

@@ -90,11 +90,12 @@ impl PatternParse for ConstLenPattern {
             return None;
         }
 
-        let iter = self.elements
+        let iter = self
+            .elements
             .iter()
             .zip_eq(bitstring.iter())
             .map(|(elem, bit)| elem.parse(bit));
-        
+
         let mut bindings = Bindings::empty();
         for item in iter {
             if let Some((name, value)) = item? {
@@ -109,7 +110,7 @@ impl PatternParse for ConstLenPattern {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ConstLenPatternElement {
     ConstBit(Bit),
-    AnyBit { var_name: String }
+    AnyBit { var_name: String },
 }
 
 impl ConstLenPatternElement {
@@ -121,12 +122,12 @@ impl ConstLenPatternElement {
                 } else {
                     None
                 }
-            },
+            }
             Self::AnyBit { var_name } => {
                 let string = iter::once(arg).collect();
                 let tuple = (var_name.clone(), string);
                 Some(Some(tuple))
-            },
+            }
         }
     }
 }
@@ -156,16 +157,16 @@ impl PatternParse for VarLenPattern {
         let middle_parsed = self.parse_middle(middle_str.into());
         let right_parsed = self.right.parse(right_str.into())?;
 
-        Some(left_parsed.union_with(middle_parsed).union_with(right_parsed))
+        Some(
+            left_parsed
+                .union_with(middle_parsed)
+                .union_with(right_parsed),
+        )
     }
 }
 
 impl VarLenPattern {
     fn parse_middle(&self, middle_str: BitString) -> Bindings {
-        Bindings::new(
-            iter::once((self.bit_string_var_name.clone(), middle_str.into()))
-            .collect()
-        )
+        Bindings::new(iter::once((self.bit_string_var_name.clone(), middle_str.into())).collect())
     }
 }
-

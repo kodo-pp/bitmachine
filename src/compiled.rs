@@ -1,5 +1,5 @@
-use crate::callable::Callable;
 use crate::bindings::Bindings;
+use crate::callable::Callable;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ impl Into<Bindings> for Program {
             self.function_map
                 .into_iter()
                 .map(|(k, v)| (k, v.into()))
-                .collect()
+                .collect(),
         )
     }
 }

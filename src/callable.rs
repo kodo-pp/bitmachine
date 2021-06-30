@@ -4,7 +4,7 @@ use crate::native_function::NativeFunction;
 #[derive(Debug, Clone)]
 pub enum Callable {
     Coded(CodedFunction),
-    Native(NativeFunction)
+    Native(NativeFunction),
 }
 
 impl From<CodedFunction> for Callable {

@@ -1,8 +1,8 @@
-use crate::value::Value;
-use crate::vm::{BasicExecResult, ExecError};
 use crate::bindings::Bindings;
 use crate::bitstring::BitString;
 use crate::callable::Callable;
+use crate::value::Value;
+use crate::vm::{BasicExecResult, ExecError};
 
 #[derive(Debug, Clone)]
 pub struct NativeFunction {
@@ -11,24 +11,32 @@ pub struct NativeFunction {
 }
 
 pub fn make_bindings() -> Bindings {
-    let vec: Vec<(_, fn(Vec<Value>) -> BasicExecResult<Value>)> = vec![
-        ("$", alloc_wrapper),
-        ("?!", debug),
-    ];
+    let vec: Vec<(_, fn(Vec<Value>) -> BasicExecResult<Value>)> =
+        vec![("$", alloc_wrapper), ("?!", debug)];
 
-    Bindings::new(vec.into_iter().map(|(name_str, func)| {
-        let name = String::from(name_str);
-        (name.clone(), Value::Callable(Callable::Native(NativeFunction { func, name })))
-    }).collect())
+    Bindings::new(
+        vec.into_iter()
+            .map(|(name_str, func)| {
+                let name = String::from(name_str);
+                (
+                    name.clone(),
+                    Value::Callable(Callable::Native(NativeFunction { func, name })),
+                )
+            })
+            .collect(),
+    )
 }
 
 fn alloc_wrapper(args: Vec<Value>) -> BasicExecResult<Value> {
-    alloc(args.clone()).ok_or_else(|| ExecError::NoMatch { func_name: String::from("$"), args })
+    alloc(args.clone()).ok_or_else(|| ExecError::NoMatch {
+        func_name: String::from("$"),
+        args,
+    })
 }
 
 fn alloc(mut args: Vec<Value>) -> Option<Value> {
     if args.len() != 1 {
-        return None
+        return None;
     }
 
     let bit_string = args.remove(0).into_bit_string()?;
